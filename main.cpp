@@ -32,16 +32,15 @@ public:
 class Vector {
 public:
 	Point End;
-	double length;
 
 	Vector(){
 		End = Point(0, 0, 0);
-		length = 0;
 	}
 	Vector(Point End){
-		Point N = Point(0, 0, 0);
 		this->End = Point(End);
-		length = N.distance(End);
+	}
+	Vector(Point Start, Point End){
+		this->End = Point(End.x1 - Start.x1, End.x2 - Start.x2, End.x3 - Start.x3);
 	}
 	Vector(float length, float a1, float a2, float a3){		//Nur 2D --- 3 Koordinate immer 0
 		this->End.x1 = length * sin((a1/180)*M_PI);
@@ -55,11 +54,85 @@ public:
 	Vector xproduct(Vector& B){
 		return Vector(Point((this->End.x2*B.End.x3 - this->End.x3*B.End.x2), (this->End.x3*B.End.x1 - this->End.x1*B.End.x3), (this->End.x1*B.End.x2 - this->End.x2*B.End.x1)));
 	}
-	double sproduct(Vector& B){
+	float sproduct(Vector& B){
 		return (this->End.x1*B.End.x1 + this->End.x2*B.End.x2 + this->End.x3*B.End.x3);
+	}
+	float getLength(){
+		return sqrt(pow(this->End.x1, 2) + pow(this->End.x2, 2) + pow(this->End.x3, 2));
 	}
 	void print(){
 		cout << "[" << this->End.x1 << ";" << this->End.x2 << ";" << this->End.x3 << "]" << endl;
+	}
+};
+class Axis{
+public:
+	Point Start;
+	Vector Direction;
+
+	Axis() {			//not an axis, because no vector.
+		this->Start = Point();
+		this->Direction = Vector();
+	}
+	Axis(Vector Direction){
+		this->Start = Point();
+		this->Direction = Vector(Direction);
+	}
+	Axis(Point Start, Vector Direction){
+		this->Start = Point(Start);
+		this->Direction = Vector(Direction);
+	}
+	bool isOnAxis(Point P){
+		if (this->Direction.End.x1 == 0){
+			if (P.x1 != 0 )
+			{
+				return false;
+			}
+		}
+		else if (this->Direction.End.x2 == 0){
+			if (P.x2 != 0)
+			{
+				return false;
+			}
+		}
+		else if (this->Direction.End.x3 == 0){
+			if (P.x3 != 0)
+			{
+				return false;
+			}
+		}
+		else {
+			float h1 = (P.x1 - this->Start.x1) / this->Direction.End.x1;
+			float h2 = (P.x2 - this->Start.x2) / this->Direction.End.x2;
+			float h3 = (P.x3 - this->Start.x3) / this->Direction.End.x3;
+			if (h1 == h2 && h2 == h3) {
+				return true;
+			}
+		}
+	}
+};
+class Plane{
+public:
+	Point point;
+	Vector v1;
+	Vector v2;
+	
+	Plane(){			//not a Plane, but nothing was defined
+		this->point = Point();
+		this->v1 = Vector();
+		this->v2 = Vector();
+	}
+	Plane(Vector v1, Vector v2){
+		this->point = Point();
+		this->v1 = Vector(v1);
+		this->v2 = Vector(v2);
+	}
+	Plane(Point point, Vector v1, Vector v2){
+		this->point = Point(point);
+		this->v1 = Vector(v1);
+		this->v2 = Vector(v2);
+	}
+	bool isOnPlane(Point P){
+
 	}
 };
 class fixedVector {
@@ -74,6 +147,47 @@ public:
 	fixedVector(Point poa, Vector vector){
 		this->poa = Point(poa);
 		this->vector = Vector(vector);
+	}
+};
+class slidingVector{
+public:
+	Axis axis;
+	Vector vector;
+
+	slidingVector(){
+		this->axis = Axis();
+		this->vector = Vector();
+	}
+	slidingVector(Axis axis, Vector vector){
+		this->axis = Axis(axis);
+		this->vector = Vector(vector);
+	}
+};
+class MaaP{			//Moment about a Point
+public:
+	fixedVector Moment;
+	Point point;
+
+	MaaP(){
+		Moment = fixedVector();
+		point = Point();
+	}
+	MaaP(Point point, fixedVector force){
+		this->point = Point(point);
+		this->Moment = fixedVector(point, Vector(point, force.poa).xproduct(force.vector));
+	}
+};
+class MaaA{			//Moment about an Axis
+	slidingVector sV;
+
+	MaaA(){
+		this->sV = slidingVector();
+	}
+	MaaA(slidingVector sV){
+		this->sV = slidingVector(sV);
+	}
+	MaaA(Axis a, fixedVector fV){
+		
 	}
 };
 class cfs {				//concurrent force system
